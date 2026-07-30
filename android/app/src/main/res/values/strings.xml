@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">自动点击器</string>
+    <string name="accessibility_description">允许自动点击器在锁定的屏幕坐标发送点击手势。</string>
+</resources>

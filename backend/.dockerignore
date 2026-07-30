@@ -1,0 +1,9 @@
+.git
+.gitignore
+.idea
+.vscode
+config.json
+data
+*.log
+*.exe
+__debug_bin*

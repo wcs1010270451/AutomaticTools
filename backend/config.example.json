@@ -1,0 +1,8 @@
+{
+  "addr": "0.0.0.0:8088",
+  "database_url": "postgres://postgres:your-password@localhost:5432/automatic_tools?sslmode=disable",
+  "jwt_secret": "change-this-secret",
+  "admin_key": "change-this-admin-key",
+  "token_ttl_hours": 720,
+  "log_level": "info"
+}

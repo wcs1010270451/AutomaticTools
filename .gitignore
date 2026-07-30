@@ -1,0 +1,33 @@
+# Local backend secrets and data
+backend/config.json
+backend/data/
+
+# Production deployment package is uploaded separately
+prod/
+
+# IDE and OS local files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Generated executables and installation packages
+*.exe
+*.msi
+*.msix
+*.apk
+*.aab
+
+# Windows/Python build output
+windows/build/
+windows/dist/
+windows/__pycache__/
+*.pyc
+
+# Android local and generated files
+android/.gradle/
+android/.idea/
+android/.kotlin/
+android/build/
+android/app/build/
+android/local.properties
