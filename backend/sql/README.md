@@ -24,6 +24,21 @@ For a database created before the user email and phone fields were added, run:
 psql -U postgres -d automatic_tools -f .\sql\002_add_user_contacts_postgres.sql
 ```
 
+To add the administrator table manually, run:
+
+```powershell
+psql -U postgres -d automatic_tools -f .\sql\003_add_admins_postgres.sql
+```
+
+To add registration email verification codes manually, run:
+
+```powershell
+psql -U postgres -d automatic_tools -f .\sql\004_add_email_verification_codes_postgres.sql
+```
+
+The administrator row itself is initialized by the backend on startup so its
+password is stored as a bcrypt hash rather than plain text.
+
 On this computer, `psql.exe` is currently located at:
 
 ```text
@@ -42,3 +57,4 @@ default `auto_click` tool uses `ON CONFLICT DO NOTHING`.
 - Time fields use Unix timestamps in seconds.
 - `tools.lifetime` and `tools.active` use PostgreSQL booleans.
 - An entitlement with a null `expires_at` is permanent.
+- Email verification codes are stored as HMAC-SHA256 hashes, never as plaintext.

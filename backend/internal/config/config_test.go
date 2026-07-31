@@ -12,8 +12,16 @@ func TestLoadFileAndEnvironmentOverrides(t *testing.T) {
   "addr": "127.0.0.1:9000",
   "database_url": "postgres://file",
   "jwt_secret": "file-secret",
-  "admin_key": "file-admin",
+  "admin_username": "root",
+  "admin_password": "file-admin-password",
   "token_ttl_hours": 12,
+  "smtp_host": "smtp.file.example",
+  "smtp_port": 465,
+  "smtp_username": "mailer@example.com",
+  "smtp_password": "smtp-secret",
+  "smtp_from": "noreply@example.com",
+  "smtp_from_name": "Tools Mailer",
+  "smtp_encryption": "tls",
   "log_level": "debug"
 }`
 	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
@@ -34,11 +42,26 @@ func TestLoadFileAndEnvironmentOverrides(t *testing.T) {
 	if cfg.DatabaseURL != "postgres://environment" {
 		t.Fatalf("unexpected database URL: %s", cfg.DatabaseURL)
 	}
-	if cfg.JWTSecret != "file-secret" || cfg.AdminKey != "file-admin" {
-		t.Fatal("file secrets were not loaded")
+	if cfg.JWTSecret != "file-secret" {
+		t.Fatal("JWT secret was not loaded")
+	}
+	if cfg.AdminUsername != "root" || cfg.AdminPassword != "file-admin-password" {
+		t.Fatal("admin bootstrap credentials were not loaded")
 	}
 	if cfg.TokenTTLHours != 12 {
 		t.Fatalf("unexpected token TTL: %d", cfg.TokenTTLHours)
+	}
+	if cfg.SMTPHost != "smtp.file.example" || cfg.SMTPPort != 465 {
+		t.Fatalf("unexpected SMTP endpoint: %s:%d", cfg.SMTPHost, cfg.SMTPPort)
+	}
+	if cfg.SMTPUsername != "mailer@example.com" || cfg.SMTPPassword != "smtp-secret" {
+		t.Fatal("SMTP credentials were not loaded")
+	}
+	if cfg.SMTPFrom != "noreply@example.com" || cfg.SMTPFromName != "Tools Mailer" {
+		t.Fatal("SMTP sender identity was not loaded")
+	}
+	if cfg.SMTPEncryption != "tls" {
+		t.Fatalf("unexpected SMTP encryption: %s", cfg.SMTPEncryption)
 	}
 }
 

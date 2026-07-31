@@ -4,7 +4,7 @@ AutomaticTools 是一个实用工具平台，目前包含自动点击工具，�
 
 ## 项目目录
 
-- `backend`：Go API、PostgreSQL 表结构、用户认证、订单与工具授权
+- `backend`：Gin + GORM API，按 router、handler、logic、middleware、store 分层
 - `frontend/index`：静态官网
 - `frontend/admin`：Vue 3 + TypeScript 管理端
 - `frontend` 根目录：官网与管理端的统一 Nginx 镜像构建配置

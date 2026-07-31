@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"time"
 
-	"automatictools/backend/internal/app"
 	"automatictools/backend/internal/config"
+	"automatictools/backend/internal/router"
 	"automatictools/backend/internal/store"
 )
 
@@ -30,14 +30,23 @@ func main() {
 		logger.Error("open database failed", "error", err)
 		os.Exit(1)
 	}
-	defer db.Close()
+	sqlDB, err := db.DB()
+	if err != nil {
+		logger.Error("get database connection failed", "error", err)
+		os.Exit(1)
+	}
+	defer sqlDB.Close()
 
 	if err := store.Migrate(db); err != nil {
 		logger.Error("migrate database failed", "error", err)
 		os.Exit(1)
 	}
+	if err := store.EnsureDefaultAdmin(db, cfg.AdminUsername, cfg.AdminPassword); err != nil {
+		logger.Error("initialize default admin failed", "error", err)
+		os.Exit(1)
+	}
 
-	handler := app.New(app.Dependencies{
+	handler := router.New(router.Dependencies{
 		Config: cfg,
 		DB:     db,
 		Logger: logger,

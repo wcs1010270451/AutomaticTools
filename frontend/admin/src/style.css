@@ -92,7 +92,25 @@ nav {
   text-align: left;
 }
 
-.nav-item.active {
+.nav-link {
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    color 180ms ease-out,
+    background 180ms ease-out;
+}
+
+.nav-link:hover {
+  color: oklch(92% 0.008 155);
+  background: oklch(34% 0.045 165);
+}
+
+.nav-link:focus-visible {
+  outline: 2px solid oklch(82% 0.14 86);
+  outline-offset: 2px;
+}
+
+.nav-link.router-link-exact-active {
   color: oklch(98% 0.004 150);
   background: oklch(42% 0.075 165);
 }
@@ -136,6 +154,47 @@ nav {
   border-radius: 5px;
   font-size: 12px;
   font-weight: 700;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-account {
+  color: oklch(42% 0.02 165);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.logout-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 10px;
+  color: oklch(43% 0.03 165);
+  background: transparent;
+  border: 1px solid oklch(82% 0.018 158);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition:
+    color 180ms ease-out,
+    background 180ms ease-out,
+    border-color 180ms ease-out;
+}
+
+.logout-button:hover {
+  color: oklch(34% 0.07 165);
+  background: oklch(94% 0.025 158);
+  border-color: oklch(72% 0.04 160);
+}
+
+.logout-button:focus-visible {
+  outline: 2px solid oklch(51% 0.085 165);
+  outline-offset: 2px;
 }
 
 .empty-state {
@@ -202,6 +261,20 @@ nav {
   }
 
   .environment {
+    display: none;
+  }
+
+  .admin-account {
+    display: none;
+  }
+
+  .logout-button {
+    width: 34px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .logout-button span {
     display: none;
   }
 

@@ -1,30 +1,40 @@
-package app
+package logic
 
 import (
-	"database/sql"
-	"log/slog"
-	"net/http"
 	"time"
 
 	"automatictools/backend/internal/config"
+
+	"gorm.io/gorm"
 )
 
 type Dependencies struct {
-	Config config.Config
-	DB     *sql.DB
-	Logger *slog.Logger
+	Config      config.Config
+	DB          *gorm.DB
+	EmailSender EmailSender
 }
 
-type App struct {
-	cfg    config.Config
-	db     *sql.DB
-	logger *slog.Logger
-	mux    *http.ServeMux
+type Service struct {
+	cfg         config.Config
+	db          *gorm.DB
+	emailSender EmailSender
 }
 
-type ErrorResponse struct {
-	Error     string `json:"error"`
-	RequestID string `json:"requestId"`
+func New(deps Dependencies) *Service {
+	return &Service{
+		cfg:         deps.Config,
+		db:          deps.DB,
+		emailSender: deps.EmailSender,
+	}
+}
+
+type EmailSender interface {
+	SendRegistrationCode(to string, code string, validMinutes int) error
+}
+
+type RequestMeta struct {
+	IP        string
+	UserAgent string
 }
 
 type UserDTO struct {
@@ -37,6 +47,14 @@ type UserDTO struct {
 	LastLoginAt *int64 `json:"lastLoginAt,omitempty"`
 }
 
+type AdminDTO struct {
+	ID          int64  `json:"id"`
+	Username    string `json:"username"`
+	Status      string `json:"status"`
+	CreatedAt   int64  `json:"createdAt,omitempty"`
+	LastLoginAt *int64 `json:"lastLoginAt,omitempty"`
+}
+
 type ToolDTO struct {
 	Code        string `json:"code"`
 	Name        string `json:"name"`
@@ -44,6 +62,18 @@ type ToolDTO struct {
 	PriceCents  int64  `json:"priceCents"`
 	Currency    string `json:"currency"`
 	Lifetime    bool   `json:"lifetime"`
+}
+
+type AdminToolDTO struct {
+	ID          int64  `json:"id"`
+	Code        string `json:"code"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	PriceCents  int64  `json:"priceCents"`
+	Currency    string `json:"currency"`
+	Lifetime    bool   `json:"lifetime"`
+	Active      bool   `json:"active"`
+	CreatedAt   int64  `json:"createdAt"`
 }
 
 type EntitlementDTO struct {
