@@ -1,7 +1,7 @@
 # AutomaticTools Windows
 
-Windows 客户端使用 Tkinter 构建界面，并使用 Pillow 与 qrcode 在本机生成
-一次性授权码兑换。打包后的 EXE 已包含运行依赖，目标电脑不需要安装 Python。
+Windows 客户端使用 Tkinter 构建界面，通过后端完成注册、登录和授权码兑换。
+打包后的 EXE 已包含运行依赖，目标电脑不需要安装 Python。
 
 ## 本地运行
 
@@ -75,3 +75,17 @@ python -m PyInstaller --noconfirm --clean AutomaticToolsLocal.spec
 
 生成文件位于 `windows\dist\AutomaticToolsLocal.exe`。本地版本仅用于开发测试，
 不要作为正式安装包发布。
+
+## 在 macOS 上开发
+
+客户端依赖 Windows DPAPI 和 Win32 点击接口。macOS 可以编辑源码，但不能直接
+运行或可靠生成正式 EXE。请保留 Windows 构建机、使用 Windows 虚拟机，或后续
+配置 Windows CI。
+
+`windows/dist/` 被 Git 忽略。换电脑时应单独备份正式版，并在构建前端镜像前放到：
+
+```text
+windows/dist/AutomaticTools.exe
+```
+
+完整迁移步骤见 [macOS 开发环境与迁移指南](../docs/macos-development.md)。

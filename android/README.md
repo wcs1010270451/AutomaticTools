@@ -1,64 +1,59 @@
 # AutomaticTools Android
 
-Native Kotlin Android client for AutomaticTools.
+原生 Kotlin Android 客户端，使用无障碍服务执行点击手势，无需 Root。
 
-## Features
+## 当前功能
 
-- Floating draggable target dot.
-- Floating control panel.
-- Lock target coordinate.
-- Start and stop auto tapping.
-- Interval buttons: 100ms, 500ms, 1000ms, 2s.
-- Click counter and reset button.
-- Uses AccessibilityService gestures, no root required.
+- 用户注册、登录和登录状态保存
+- 工具列表与授权码兑换
+- 可拖动的点击目标点和悬浮控制面板
+- 锁定目标坐标、开始和停止自动点击
+- 100ms、500ms、1000ms、2 秒间隔
+- 点击次数统计和重置
 
-## Build
+## Android Studio 运行
 
-Open this folder in Android Studio:
+在 Android Studio 中打开仓库内的 `android` 文件夹，等待 Gradle 同步完成。选择已启用 USB 调试的手机，然后点击 Run 或 Debug。
 
-```text
-D:\wcs\Code\AutomaticTools\android
+首次使用悬浮工具时，需要授予：
+
+1. 显示在其他应用上层权限。
+2. AutomaticTools 无障碍服务权限。
+
+随后拖动目标点，锁定坐标，选择间隔并开始点击。部分游戏、支付、银行或带反自动化保护的应用可能拦截无障碍手势。
+
+## 命令行构建
+
+macOS：
+
+```sh
+cd android
+sh ./gradlew assembleDebug
+sh ./gradlew assembleRelease
 ```
 
-Then run:
-
-```text
-Build > Build APK(s)
-```
-
-For the website download package, build the signed release APK:
+Windows PowerShell：
 
 ```powershell
+cd android
+.\gradlew.bat assembleDebug
 .\gradlew.bat assembleRelease
 ```
 
-The release signing identity is stored locally in `keystore/` and
-`keystore.properties`. Both paths are ignored by Git. Back up both files
-together; losing this key prevents future APK versions from upgrading the
-installed release app.
+输出文件：
 
-The development APK and release APK use different signatures. Uninstall an
-existing development build once before installing the first release build.
-Future releases must keep this signing key and increment `versionCode`.
+- Debug：`app/build/outputs/apk/debug/app-debug.apk`
+- Release：`app/build/outputs/apk/release/app-release.apk`
 
-The current machine does not expose `java` or `gradle` in PATH, so this project was not compiled in this Codex run.
+## 正式版签名
 
-## Phone Setup
+Release 构建依赖以下本地文件：
 
-1. Install the APK.
-2. Open AutomaticTools.
-3. Tap `Open overlay permission` and allow display over other apps.
-4. Tap `Open accessibility settings`.
-5. Enable the `AutomaticTools` accessibility service.
-6. Return to AutomaticTools and tap `Start floating controls`.
+- `android/keystore.properties`
+- `android/keystore/automatictools-release.jks`
 
-## Usage
+两者都被 Git 忽略，换电脑时必须单独安全迁移并共同备份。丢失密钥后，新 APK 无法覆盖升级已经安装的正式版。
 
-1. Drag the blue target dot to the target tap position.
-2. Tap `Lock`.
-3. Pick an interval.
-4. Tap `Start`.
-5. Tap `Stop` to pause.
-6. Tap `Reset` to clear the click count.
+开发版和正式版使用不同签名。首次由 Debug 切换到 Release 时可能需要卸载旧应用。此后必须一直使用同一正式密钥，并在每次公开发布前递增 `app/build.gradle.kts` 中的 `versionCode`。
 
-Some apps, especially games, payment apps, banking apps, and anti-automation protected apps, may block accessibility generated taps.
+完整的 macOS 环境配置见 [macOS 开发环境与迁移指南](../docs/macos-development.md)。

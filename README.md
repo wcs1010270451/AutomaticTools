@@ -1,51 +1,70 @@
 # AutomaticTools
 
-AutomaticTools 是一个实用工具平台，目前包含自动点击工具，以及用户、订单、支付宝支付和工具购买记录相关的基础服务。
+AutomaticTools 是一个跨平台实用工具平台，包含官网、管理端、Go 后端、Android 客户端和 Windows 客户端。当前主要工具是自动点击，用户通过邮箱注册登录，并使用授权码开通工具。
 
 ## 项目目录
 
-- `backend`：Gin + GORM API，按 router、handler、logic、middleware、store 分层
-- `frontend/index`：静态官网
+- `backend`：Gin + GORM API，使用 PostgreSQL
+- `frontend/index`：静态官网及客户端下载页
 - `frontend/admin`：Vue 3 + TypeScript 管理端
-- `frontend` 根目录：官网与管理端的统一 Nginx 镜像构建配置
-- `android`：Android 客户端
-- `windows`：Windows 客户端
+- `frontend`：官网和管理端的统一 Nginx 镜像
+- `android`：Kotlin Android 客户端
+- `windows`：Python + Tkinter Windows 客户端
 - `prod`：Docker Compose、Caddy 和生产环境运维脚本
+- `docs`：开发及迁移文档
 
-官网和管理端源码相互独立，但会一起打包到 `automatictools-frontend` 镜像，在同一个 Nginx 容器中运行。
+官网与管理端源码相互独立，但会一起构建到 `automatictools-frontend` 镜像，在同一个 Nginx 容器中运行。
 
-## 发布前后端镜像
+## 开发文档
 
-先确认 Docker Desktop 已启动并已经登录 Docker Hub：
+- [macOS 开发环境与迁移指南](docs/macos-development.md)
+- [后端接口与配置](backend/README.md)
+- [Android 客户端](android/README.md)
+- [Windows 客户端](windows/README.md)
+- [前端项目与发布](frontend/README.md)
+- [生产部署](prod/README.md)
 
-```powershell
+## 构建并发布镜像
+
+先启动 Docker Desktop，并登录 Docker Hub：
+
+```sh
 docker login
 ```
 
-前端先构建，成功后再推送：
-
-```powershell
-.\frontend\build.bat
-.\frontend\push.bat
-```
-
-后端先构建，成功后再推送：
+Windows PowerShell：
 
 ```powershell
 .\backend\build.bat
 .\backend\push.bat
+.\frontend\build.bat
+.\frontend\push.bat
 ```
 
-发布的镜像均为 `linux/amd64`：
+macOS 终端：
 
-- `wcs19890321/automatictools-frontend:latest`
+```sh
+sh backend/build.sh
+sh backend/push.sh
+sh frontend/build.sh
+sh frontend/push.sh
+```
+
+默认发布以下 `linux/amd64` 镜像：
+
 - `wcs19890321/automatictools-backend:latest`
+- `wcs19890321/automatictools-frontend:latest`
 
-构建与推送分开执行。上传失败时可以直接重新运行对应的 `push.bat`，不需要再次构建。
+前端构建前必须准备好两个正式安装包：
 
-## 服务器首次部署
+- `windows/dist/AutomaticTools.exe`
+- `android/app/build/outputs/apk/release/app-release.apk`
 
-将完整的 `prod` 目录上传到服务器，必须包含隐藏文件 `prod/.env`。服务器需要安装 Docker Engine 和 Docker Compose v2，并开放 TCP 80、TCP 443；UDP 443 用于 HTTP/3，可选开放。
+构建脚本会把它们复制到 `frontend/downloads`。这些二进制文件不进入 Git；迁移到新电脑时，需要单独复制 Windows 正式包，并重新构建 Android Release APK。
+
+## 服务器部署
+
+首次部署时，将完整的 `prod` 目录上传到服务器，必须包含隐藏文件 `prod/.env`。服务器只拉取镜像，不编译源码：
 
 ```sh
 cd ~/prod
@@ -53,43 +72,19 @@ chmod +x start.sh update.sh stop.sh
 ./start.sh
 ```
 
-`start.sh` 会拉取 PostgreSQL、后端、前端和 Caddy 镜像，启动全部容器并等待健康检查通过。服务器不会编译源码或构建镜像。
-
-当前正式域名：
-
-```text
-https://autumnwind.top
-https://admin.autumnwind.top
-```
-
-`prod/.env` 中的域名配置应为：
-
-```env
-DOMAIN=autumnwind.top
-ADMIN_DOMAIN=admin.autumnwind.top
-```
-
-Caddy 会自动申请和续期 HTTPS 证书。
-
-## 后续更新
-
-本地完成前后端镜像构建与推送后，在服务器执行：
+后续完成本地镜像构建和推送后，在服务器更新：
 
 ```sh
 cd ~/prod
 ./update.sh
 ```
 
-停止服务：
+当前正式地址：
 
-```sh
-cd ~/prod
-./stop.sh
-```
+- `https://autumnwind.top`
+- `https://admin.autumnwind.top`
 
-`stop.sh` 不会删除 PostgreSQL 和 Caddy 数据卷。
-
-## 部署验证
+验证服务：
 
 ```sh
 docker compose ps
@@ -98,12 +93,16 @@ curl https://autumnwind.top/api/tools
 curl -I https://admin.autumnwind.top
 ```
 
-正常响应示例：
+后端 `8088` 和 PostgreSQL `5432` 只在 Docker 内部网络使用。公网请求统一由 Caddy 的 80/443 端口转发。
 
-```json
-{"ok":true}
-```
+## 重要备份
 
-后端的 `8088` 和 PostgreSQL 的 `5432` 仅在 Docker 内部网络使用，不对服务器公网开放。外部请求统一通过 Caddy 的 80/443 端口访问。
+以下文件包含密钥、密码或构建产物，已被 `.gitignore` 排除，不能只依赖 Git 迁移：
 
-详细部署与排查说明见 [`prod/README.md`](prod/README.md)。
+- `android/keystore/automatictools-release.jks`
+- `android/keystore.properties`
+- `backend/config.json`
+- `prod/.env` 和 `prod/secrets/`
+- `windows/dist/AutomaticTools.exe`
+
+请使用加密存储单独备份。丢失 Android 发布密钥后，已安装的正式版将无法通过新 APK 原地升级。

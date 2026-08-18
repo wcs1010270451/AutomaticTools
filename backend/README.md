@@ -10,9 +10,10 @@ The first tool is `auto_click`, but the backend is structured so more paid tools
 - Administrator login with isolated JWT authorization
 - Administrator, user, and tool management APIs
 - JWT authentication
-- Tool catalog
-- Alipay face-to-face QR payment
-- Idempotent payment callbacks and permanent purchases
+- Tool catalog and permanent entitlements
+- One-time license-code generation, inventory, revocation, and redemption
+- Optional Alipay face-to-face QR payment (disabled in the current sales flow)
+- Idempotent payment callbacks when Alipay is enabled
 - Device binding
 - Audit logs
 - JSON request logs with request IDs
@@ -35,6 +36,7 @@ Core tables:
 - `tools`: paid utility tools, for example `auto_click`
 - `orders`: purchase records
 - `entitlements`: internal ownership records exposed to clients as purchases
+- `license_codes`: one-time tool authorization codes; plaintext is shown only when generated
 - `devices`: user device binding and last-seen tracking
 - `audit_logs`: traceable business events
 
@@ -42,23 +44,25 @@ Recommended client flow:
 
 1. User registers or logs in.
 2. Client calls `GET /api/tools`.
-3. Client calls `POST /api/payments/alipay/precreate` and renders the returned QR content.
-4. Alipay sends a signed asynchronous notification after payment.
-5. Backend verifies the signature, app, seller, order number, and amount.
-6. One transaction marks the order paid and records the purchased tool.
-7. Client polls the order and refreshes `GET /api/me/purchases` after success.
+3. Administrator generates one-time license codes for a tool.
+4. User obtains a code and calls `POST /api/license-codes/redeem`.
+5. One transaction consumes the code and creates the permanent entitlement.
+6. Client refreshes `GET /api/me/purchases` or `GET /api/me/entitlements`.
+
+The Alipay endpoints remain available as an optional future payment channel, but
+the current Windows and Android product flow uses license-code redemption.
 
 ## Start
 
-```powershell
-cd D:\wcs\Code\AutomaticTools\backend
-go run .\cmd\api
+```sh
+cd backend
+go run ./cmd/api
 ```
 
-Or double click:
+Windows 也可以双击：
 
 ```text
-D:\wcs\Code\AutomaticTools\backend\run_backend.bat
+backend\run_backend.bat
 ```
 
 Default address:
@@ -75,14 +79,16 @@ secrets. The default database connection is:
 postgres://postgres@localhost:5432/automatic_tools?sslmode=disable
 ```
 
-Create the `automatic_tools` database, then execute the initialization script:
+Create the `automatic_tools` database. The backend executes the idempotent
+initialization script during startup, so manual execution is only needed for
+inspection or repair:
 
 ```text
-D:\wcs\Code\AutomaticTools\backend\sql\001_init_postgres.sql
+backend/sql/001_init_postgres.sql
 ```
 
-The backend also executes this idempotent script during startup. See
-`sql/README.md` for the manual commands and field conventions.
+See `sql/README.md` for the manual commands and field conventions. macOS setup
+and migration steps are documented in `../docs/macos-development.md`.
 
 ## Configuration
 
@@ -248,6 +254,54 @@ Example response:
     }
   ]
 }
+```
+
+### Redeem License Code
+
+```http
+POST /api/license-codes/redeem
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "code": "AT-XXXX-XXXX-XXXX-XXXX"
+}
+```
+
+Each code can be redeemed by one user only. A successful transaction creates a
+permanent entitlement for the code's tool. Clients should then refresh the
+current user's purchases or entitlements.
+
+### Manage License Codes
+
+All license-code management APIs require an administrator token.
+
+Generate 1 to 100 codes. Plaintext codes are returned only in this response:
+
+```http
+POST /api/admin/license-codes/generate
+Authorization: Bearer <admin-token>
+Content-Type: application/json
+
+{
+  "toolCode": "auto_click",
+  "count": 10,
+  "note": "August batch"
+}
+```
+
+List inventory and filter by status, tool, code hint, batch, note, or user:
+
+```http
+GET /api/admin/license-codes?page=1&pageSize=20&status=active&toolCode=auto_click
+Authorization: Bearer <admin-token>
+```
+
+Revoke an unused code:
+
+```http
+POST /api/admin/license-codes/123/revoke
+Authorization: Bearer <admin-token>
 ```
 
 ### Create Alipay QR Payment
@@ -446,8 +500,9 @@ public catalog. Create and update actions are written to `audit_logs`.
 
 ### Confirm Order (support API)
 
-This endpoint is retained for customer-service repair and local testing. Normal
-Windows purchases use the Alipay callback instead.
+This endpoint is retained for customer-service repair and local testing. The
+current Windows and Android clients normally unlock tools through license-code
+redemption instead.
 
 ```http
 POST /api/admin/orders/confirm
@@ -490,10 +545,10 @@ Do not use `localhost` on Android. On Android, `localhost` means the phone itsel
 
 ## Production Notes
 
-Before launch, add:
+Before enabling Alipay, add reconciliation, refunds, and customer-service
+workflows. General production hardening should also include:
 
 - Database backup
 - Rate limiting
 - Structured error monitoring
 - Deployment health checks
-- Alipay reconciliation, refunds, and customer-service workflows
