@@ -23,3 +23,18 @@ var AddAdminsPostgres string
 //
 //go:embed 004_add_email_verification_codes_postgres.sql
 var AddEmailVerificationCodesPostgres string
+
+// AddPaymentDetailsPostgres adds provider identifiers and QR payment metadata.
+//
+//go:embed 005_add_payment_details_postgres.sql
+var AddPaymentDetailsPostgres string
+
+// AddLicenseCodesPostgres adds one-time tool redemption codes.
+//
+//go:embed 006_add_license_codes_postgres.sql
+var AddLicenseCodesPostgres string
+
+// AddGameTablesPostgres adds game system tables for the box-opening RPG game.
+//
+//go:embed 007_add_game_tables_postgres.sql
+var AddGameTablesPostgres string

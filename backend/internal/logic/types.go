@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"automatictools/backend/internal/config"
+	"automatictools/backend/internal/payment"
 
 	"gorm.io/gorm"
 )
@@ -12,19 +13,25 @@ type Dependencies struct {
 	Config      config.Config
 	DB          *gorm.DB
 	EmailSender EmailSender
+	Payment     payment.Provider
 }
 
 type Service struct {
 	cfg         config.Config
 	db          *gorm.DB
 	emailSender EmailSender
+	payment     payment.Provider
 }
 
 func New(deps Dependencies) *Service {
+	if deps.Payment == nil {
+		deps.Payment = payment.Disabled{}
+	}
 	return &Service{
 		cfg:         deps.Config,
 		db:          deps.DB,
 		emailSender: deps.EmailSender,
+		payment:     deps.Payment,
 	}
 }
 
@@ -84,14 +91,21 @@ type EntitlementDTO struct {
 }
 
 type OrderDTO struct {
-	OrderNo     string `json:"orderNo"`
+	OrderNo          string `json:"orderNo"`
+	ToolCode         string `json:"toolCode"`
+	AmountCents      int64  `json:"amountCents"`
+	Currency         string `json:"currency"`
+	Status           string `json:"status"`
+	PayChannel       string `json:"payChannel"`
+	PaymentExpiresAt *int64 `json:"paymentExpiresAt,omitempty"`
+	PaidAt           *int64 `json:"paidAt"`
+	CreatedAt        int64  `json:"createdAt"`
+}
+
+type PurchaseDTO struct {
 	ToolCode    string `json:"toolCode"`
-	AmountCents int64  `json:"amountCents"`
-	Currency    string `json:"currency"`
-	Status      string `json:"status"`
-	PayChannel  string `json:"payChannel"`
-	PaidAt      *int64 `json:"paidAt"`
-	CreatedAt   int64  `json:"createdAt"`
+	OrderNo     string `json:"orderNo,omitempty"`
+	PurchasedAt int64  `json:"purchasedAt"`
 }
 
 func unixNow() int64 {

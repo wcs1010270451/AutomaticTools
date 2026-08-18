@@ -1,0 +1,253 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "evidenceMode": "session-limited",
+    "evidenceBoundary": {
+      "manifest": {
+        "schemaVersion": 2,
+        "sourceFingerprint": "2dc64829c1ca1f6c",
+        "adapterVersion": "qoder-task-loop-source-v2",
+        "platform": "qoder",
+        "selection": {
+          "strategy": "all-eligible",
+          "eligibleCount": 0,
+          "analyzedCount": 0,
+          "confidence": "Low"
+        }
+      },
+      "episodeCoverage": {
+        "episodeCount": 0,
+        "editedEpisodeCount": 0,
+        "closedEpisodeCount": 0,
+        "recoveredEpisodeCount": 0
+      },
+      "deliveryEvidenceLevels": [],
+      "sourceGaps": []
+    },
+    "semanticFacets": {
+      "schemaVersion": 1,
+      "status": "supplementary",
+      "entries": [
+        {
+          "id": "session-insight:source-coverage",
+          "kind": "redacted-summary",
+          "episodeRef": null,
+          "status": "candidate",
+          "labels": [
+            "source-coverage",
+            "Low"
+          ],
+          "summary": "Analyzed 0 of 0 sessions; 0/6 enabled source roots exist. Use this as the current workspace evidence boundary for final insight cards.",
+          "evidenceRefs": [],
+          "modelVersion": "session-insights-v1"
+        },
+        {
+          "id": "session-insight:validation-behavior",
+          "kind": "redacted-summary",
+          "episodeRef": null,
+          "status": "candidate",
+          "labels": [
+            "validation-behavior",
+            "Low"
+          ],
+          "summary": "No validation command category was observed in the analyzed session sample. Inspect more sessions or add explicit validation guidance before claiming validation-after-edit behavior.",
+          "evidenceRefs": [],
+          "modelVersion": "session-insights-v1"
+        },
+        {
+          "id": "session-insight:post-edit-validation",
+          "kind": "rework-correction",
+          "episodeRef": null,
+          "status": "candidate",
+          "labels": [
+            "post-edit-validation",
+            "Low"
+          ],
+          "summary": "No edit event was observed in the analyzed sample. Inspect more sessions before making claims about edit or validation habits.",
+          "evidenceRefs": [],
+          "modelVersion": "session-insights-v1"
+        },
+        {
+          "id": "session-insight:execution-friction",
+          "kind": "friction-taxonomy",
+          "episodeRef": null,
+          "status": "candidate",
+          "labels": [
+            "execution-friction",
+            "Low"
+          ],
+          "summary": "No strong execution friction signal in the analyzed sample. Keep friction claims narrow unless additional failed commands, rejected actions, or warnings are inspected.",
+          "evidenceRefs": [],
+          "modelVersion": "session-insights-v1"
+        }
+      ]
+    },
+    "learningCapture": {
+      "schemaVersion": 1,
+      "state": "N/A",
+      "summary": "暂不适用——需要两个可比的观察窗口和一次改进对比。",
+      "interventions": []
+    },
+    "aiAgentPractice": {
+      "inspectedSurfaces": [],
+      "coverageRows": [
+        {
+          "surface": "Rules",
+          "scopes": [
+            "Project"
+          ],
+          "count": 0
+        },
+        {
+          "surface": "Skills",
+          "scopes": [
+            "Project"
+          ],
+          "count": 0
+        },
+        {
+          "surface": "Hooks",
+          "scopes": [
+            "Project"
+          ],
+          "count": 0
+        },
+        {
+          "surface": "Commands",
+          "scopes": [
+            "Project"
+          ],
+          "count": 0
+        },
+        {
+          "surface": "Custom Agents",
+          "scopes": [
+            "Project"
+          ],
+          "count": 0
+        },
+        {
+          "surface": "MCP",
+          "scopes": [
+            "Project"
+          ],
+          "count": 0
+        },
+        {
+          "surface": "Workflows",
+          "scopes": [
+            "Project"
+          ],
+          "count": 0
+        },
+        {
+          "surface": "Memories",
+          "scopes": [
+            "Project"
+          ],
+          "count": 0
+        },
+        {
+          "surface": "Plugins",
+          "scopes": [
+            "Plugin"
+          ],
+          "count": 0
+        }
+      ],
+      "repositorySourceRows": [],
+      "memoryDetails": {
+        "contentPolicy": "metadata-only",
+        "scanState": "scanned-empty",
+        "scopeCounts": [],
+        "integrity": {
+          "status": "reviewed",
+          "titleCount": 0,
+          "reviewedTitleCount": 0,
+          "truncated": false,
+          "exactCollisionGroups": 0,
+          "similarityCandidates": 0
+        }
+      }
+    },
+    "projectName": "AutomaticTools",
+    "locale": "zh-CN",
+    "modelId": "agent-work-loop-v4",
+    "reportContractVersion": 26,
+    "overview": "项目包含四个语言模块（Go/TypeScript/Kotlin/Python），但缺少项目级 AI 代理指导文件和任何自定义资产，代理必须仅从分散的 README 推断架构和约定。",
+    "dimensions": [
+      {
+        "id": "task-understanding",
+        "label": "任务理解",
+        "score": 45,
+        "summary": "无项目级代理指导文件，代理必须从分散的 README 推断架构和约定，相关上下文路由缺失。",
+        "findingRefs": [
+          "missing-project-agent-guidance",
+          "no-enforced-coding-conventions-route"
+        ]
+      },
+      {
+        "id": "controlled-execution",
+        "label": "可控执行",
+        "score": 50,
+        "summary": "项目清单和构建脚本可见，但无代理级操作指导，启动和运行依赖隐式知识。",
+        "findingRefs": [
+          "no-enforced-coding-conventions-route"
+        ]
+      },
+      {
+        "id": "change-validation",
+        "label": "改动验证",
+        "score": 55,
+        "summary": "10 个测试文件存在，但无会话证据表明变更经过针对性验证。",
+        "findingRefs": []
+      },
+      {
+        "id": "reliable-delivery",
+        "label": "可靠交付",
+        "score": 45,
+        "summary": "无交付验收、高风险审批或回滚恢复的可观察证据。",
+        "findingRefs": []
+      },
+      {
+        "id": "learning-capture",
+        "label": "经验沉淀",
+        "score": 35,
+        "summary": "无可观察的生命周期机会检测、循环工程或纵向验证机制。",
+        "findingRefs": []
+      }
+    ],
+    "assignmentSummaries": []
+  },
+  "findings": [
+    {
+      "id": "missing-project-agent-guidance",
+      "title": "多模块代码库缺少项目级代理指导，AI 代理只能从分散的 README 推断架构",
+      "severity": "Medium",
+      "reason": "项目包含 backend（Go）、frontend（TypeScript/Vue）、android（Kotlin）和 windows（Python）四个源模块，但未配置 AGENTS.md 或任何项目级代理指导文件。Agent Work Loop 模型的 relevant-context 检查将 AGENTS.md 或 Rules 作为权威指导来源，当前该路由缺失。AI 代理在处理任务时必须仅依赖分散在各子目录的 README 文件和代码结构来推断架构边界、模块职责和编码约定，增加了生成与项目设计不一致的变更的风险。证据来源：project harness agentInstructions 检查，状态为 missing，建议最少 1 个根级指导文件。",
+      "dimensionRefs": [
+        "task-understanding"
+      ],
+      "aiFixPrompt": "/better-harness fix this issue\n\n在仓库根目录创建 AGENTS.md，包含以下最小信息：\n1. 项目架构概览（四个模块及其职责）\n2. 各模块的入口文件和核心目录\n3. 构建和测试命令（go test、npm run build 等）\n4. 关键编码约定和依赖说明\n\n## Validation\n\n- 确认 AGENTS.md 可被代理读取并覆盖主要源模块\n- 确认指导信息与实际代码结构一致",
+      "expectedArtifact": "Document",
+      "expectedOutput": [
+        "Update the existing Document owner identified by the reviewed evidence and retain a focused validation result."
+      ]
+    },
+    {
+      "id": "no-enforced-coding-conventions-route",
+      "title": "无项目级编码约定路由，跨模块一致性依赖代理隐式推断",
+      "severity": "Low",
+      "reason": "项目未配置任何 Rules 或编码约定指导文件。四个语言模块（Go 24 个源文件、TypeScript 5 个、Kotlin 4 个、Python 4 个）的编码风格、错误处理模式和命名约定完全依赖各模块代码自身。当 AI 代理跨模块工作时，没有权威约定来源确保一致性，可能导致风格分散。证据来源：agent-customize lint 和 inventory 通道，Rules 项目级计数为 0。",
+      "dimensionRefs": [
+        "task-understanding",
+        "controlled-execution"
+      ],
+      "aiFixPrompt": "/better-harness fix this issue\n\n为项目添加最小编码约定路由。可以在 AGENTS.md 中添加约定章节，或创建项目级 Rules 文件，覆盖：\n1. 各语言的命名约定\n2. 错误处理模式\n3. 测试编写规范\n\n## Validation\n\n- 确认约定文件存在且覆盖主要语言模块\n- 确认约定与实际代码风格一致",
+      "expectedArtifact": "Rule",
+      "expectedOutput": [
+        "Update the existing Rule owner identified by the reviewed evidence and retain a focused validation result."
+      ]
+    }
+  ]
+}

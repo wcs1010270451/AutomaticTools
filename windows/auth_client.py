@@ -79,6 +79,38 @@ class ApiClient:
     def current_user(self, token: str) -> dict[str, Any]:
         return self._request("GET", "/api/me", token=token)
 
+    def list_tools(self) -> dict[str, Any]:
+        return self._request("GET", "/api/tools")
+
+    def my_purchases(self, token: str) -> dict[str, Any]:
+        return self._request("GET", "/api/me/purchases", token=token)
+
+    def my_orders(self, token: str) -> dict[str, Any]:
+        return self._request("GET", "/api/me/orders", token=token)
+
+    def redeem_license_code(self, token: str, code: str) -> dict[str, Any]:
+        return self._request(
+            "POST",
+            "/api/license-codes/redeem",
+            {"code": code},
+            token=token,
+        )
+
+    def create_alipay_payment(self, token: str, tool_code: str) -> dict[str, Any]:
+        return self._request(
+            "POST",
+            "/api/payments/alipay/precreate",
+            {"toolCode": tool_code},
+            token=token,
+        )
+
+    def payment_order_status(self, token: str, order_no: str) -> dict[str, Any]:
+        return self._request(
+            "GET",
+            f"/api/payments/orders/{order_no}/status",
+            token=token,
+        )
+
     def _request(
         self,
         method: str,

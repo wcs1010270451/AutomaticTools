@@ -47,6 +47,9 @@ func Migrate(db *gorm.DB) error {
 		dbschema.AddUserContactsPostgres,
 		dbschema.AddAdminsPostgres,
 		dbschema.AddEmailVerificationCodesPostgres,
+		dbschema.AddPaymentDetailsPostgres,
+		dbschema.AddLicenseCodesPostgres,
+		dbschema.AddGameTablesPostgres,
 	}
 	for _, migration := range migrations {
 		if err := db.Exec(migration).Error; err != nil {

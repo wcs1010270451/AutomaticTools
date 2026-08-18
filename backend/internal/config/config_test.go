@@ -76,3 +76,11 @@ func TestLoadRejectsInvalidJSON(t *testing.T) {
 		t.Fatal("expected invalid JSON error")
 	}
 }
+
+func TestLoadRejectsInvalidAlipayEnvironment(t *testing.T) {
+	t.Setenv("AUTOMATIC_TOOLS_CONFIG_FILE", filepath.Join(t.TempDir(), "missing.json"))
+	t.Setenv("AUTOMATIC_TOOLS_ALIPAY_ENABLED", "tru")
+	if _, err := Load(); err == nil {
+		t.Fatal("expected invalid Alipay boolean error")
+	}
+}

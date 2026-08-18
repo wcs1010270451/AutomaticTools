@@ -73,6 +73,57 @@ export interface CreateToolPayload {
 
 export type UpdateToolPayload = Omit<CreateToolPayload, 'code'>
 
+export type LicenseCodeStatus = 'active' | 'redeemed' | 'revoked'
+
+export interface LicenseCodeRecord {
+  id: number
+  codeHint: string
+  toolCode: string
+  toolName: string
+  batchNo: string
+  note: string
+  status: LicenseCodeStatus
+  createdByAdminUsername?: string
+  redeemedByUserId?: number
+  redeemedByUsername?: string
+  redeemedByEmail?: string
+  redeemedAt?: number
+  revokedAt?: number
+  createdAt: number
+}
+
+export interface LicenseCodeListParams {
+  page: number
+  pageSize: number
+  status?: '' | LicenseCodeStatus
+  toolCode?: string
+  search?: string
+}
+
+export interface LicenseCodeListResponse {
+  codes: LicenseCodeRecord[]
+  total: number
+  page: number
+  pageSize: number
+}
+
+export interface GenerateLicenseCodesPayload {
+  toolCode: string
+  count: number
+  note: string
+}
+
+export interface GeneratedLicenseCode {
+  code: string
+  toolCode: string
+  batchNo: string
+}
+
+export interface GenerateLicenseCodesResponse {
+  batchNo: string
+  codes: GeneratedLicenseCode[]
+}
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '',
   timeout: 10_000,
@@ -137,4 +188,24 @@ export async function updateTool(code: string, payload: UpdateToolPayload) {
     payload,
   )
   return response.data.tool
+}
+
+export async function listLicenseCodes(params: LicenseCodeListParams) {
+  const response = await api.get<LicenseCodeListResponse>('/api/admin/license-codes', { params })
+  return response.data
+}
+
+export async function generateLicenseCodes(payload: GenerateLicenseCodesPayload) {
+  const response = await api.post<GenerateLicenseCodesResponse>(
+    '/api/admin/license-codes/generate',
+    payload,
+  )
+  return response.data
+}
+
+export async function revokeLicenseCode(id: number) {
+  const response = await api.post<{ code: LicenseCodeRecord }>(
+    `/api/admin/license-codes/${id}/revoke`,
+  )
+  return response.data.code
 }

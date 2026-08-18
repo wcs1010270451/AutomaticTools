@@ -1,6 +1,7 @@
 # AutomaticTools Windows
 
-Windows 客户端使用 Python 标准库和 Tkinter，不需要额外运行依赖。
+Windows 客户端使用 Tkinter 构建界面，并使用 Pillow 与 qrcode 在本机生成
+一次性授权码兑换。打包后的 EXE 已包含运行依赖，目标电脑不需要安装 Python。
 
 ## 本地运行
 
@@ -8,6 +9,12 @@ Windows 客户端使用 Python 标准库和 Tkinter，不需要额外运行依�
 
 ```text
 run_automatic_tools.bat
+```
+
+直接从源码运行或打包前，先安装开发依赖：
+
+```powershell
+python -m pip install -r requirements.txt
 ```
 
 该脚本会将 API 地址设置为 `http://127.0.0.1:8088`。直接运行
@@ -34,6 +41,12 @@ python .\automatic_tools_gui.py
 
 客户端首次启动时生成独立的设备 ID，保存在同目录的 `client.json`。
 退出登录会清除登录令牌，但保留设备 ID。
+
+## 用户主界面
+
+登录后进入统一的工具平台主界面，包含首页、工具中心和账户信息。已经开通的工具
+显示在“工具中心”下一级导航中。客户端会同步用户资料、工具列表和开通记录；
+未开通的工具可输入一次性授权码兑换，兑换成功后立即加入已开通列表。
 
 ## 测试
 

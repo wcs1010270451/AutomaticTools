@@ -1,0 +1,41 @@
+{
+    "game": {
+        "name": "跃动小子",
+        "version": "1.0.0",
+        "apiBaseUrl": "http://localhost:8080"
+    },
+    "box": {
+        "costGold": 10,
+        "pityThreshold": 50,
+        "rarityWeights": [
+            { "rarity": 1, "weight": 50 },
+            { "rarity": 2, "weight": 25 },
+            { "rarity": 3, "weight": 15 },
+            { "rarity": 4, "weight": 8 },
+            { "rarity": 5, "weight": 2 }
+        ]
+    },
+    "battle": {
+        "maxDailyChallenges": 10,
+        "winGoldBase": 50,
+        "winGoldRandom": 50,
+        "winExpBase": 30,
+        "winExpRandom": 20,
+        "loseGold": 10,
+        "loseExp": 10,
+        "maxRounds": 20,
+        "damageVariance": 0.15
+    },
+    "player": {
+        "initialGold": 100,
+        "baseAtk": 10,
+        "baseDef": 8,
+        "baseHp": 100,
+        "baseSpd": 10,
+        "atkPerLevel": 2,
+        "defPerLevel": 2,
+        "hpPerLevel": 15,
+        "spdPerLevel": 1,
+        "expPerLevel": 100
+    }
+}

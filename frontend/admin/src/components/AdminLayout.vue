@@ -25,7 +25,7 @@ const navigation = [
   { label: '管理员', icon: Avatar, to: '/admins' },
   { label: '工具', icon: Goods, to: '/tools' },
   { label: '订单', icon: Clock },
-  { label: '授权', icon: Key },
+  { label: '授权码', icon: Key, to: '/license-codes' },
   { label: '审计日志', icon: Setting },
 ]
 

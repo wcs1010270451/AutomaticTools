@@ -119,14 +119,15 @@ func (a *Service) ListOrders(ctx context.Context, userID int64) ([]OrderDTO, err
 	orders := make([]OrderDTO, 0, len(records))
 	for _, record := range records {
 		orders = append(orders, OrderDTO{
-			OrderNo:     record.OrderNo,
-			ToolCode:    record.ToolCode,
-			AmountCents: record.AmountCents,
-			Currency:    record.Currency,
-			Status:      record.Status,
-			PayChannel:  record.PayChannel,
-			PaidAt:      record.PaidAt,
-			CreatedAt:   record.CreatedAt,
+			OrderNo:          record.OrderNo,
+			ToolCode:         record.ToolCode,
+			AmountCents:      record.AmountCents,
+			Currency:         record.Currency,
+			Status:           record.Status,
+			PayChannel:       record.PayChannel,
+			PaymentExpiresAt: record.PaymentExpiresAt,
+			PaidAt:           record.PaidAt,
+			CreatedAt:        record.CreatedAt,
 		})
 	}
 	return orders, nil

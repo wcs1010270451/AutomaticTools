@@ -5,7 +5,7 @@ a = Analysis(
     ['automatic_tools_local.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('assets/automatictools.png', 'assets')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -35,4 +35,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='assets/automatictools.ico',
 )

@@ -26,6 +26,21 @@ Then run:
 Build > Build APK(s)
 ```
 
+For the website download package, build the signed release APK:
+
+```powershell
+.\gradlew.bat assembleRelease
+```
+
+The release signing identity is stored locally in `keystore/` and
+`keystore.properties`. Both paths are ignored by Git. Back up both files
+together; losing this key prevents future APK versions from upgrading the
+installed release app.
+
+The development APK and release APK use different signatures. Uninstall an
+existing development build once before installing the first release build.
+Future releases must keep this signing key and increment `versionCode`.
+
 The current machine does not expose `java` or `gradle` in PATH, so this project was not compiled in this Codex run.
 
 ## Phone Setup

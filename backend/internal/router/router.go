@@ -9,6 +9,7 @@ import (
 	"automatictools/backend/internal/logic"
 	"automatictools/backend/internal/mailer"
 	"automatictools/backend/internal/middleware"
+	"automatictools/backend/internal/payment"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -16,9 +17,10 @@ import (
 )
 
 type Dependencies struct {
-	Config config.Config
-	DB     *gorm.DB
-	Logger *slog.Logger
+	Config  config.Config
+	DB      *gorm.DB
+	Logger  *slog.Logger
+	Payment payment.Provider
 }
 
 func New(deps Dependencies) http.Handler {
@@ -29,6 +31,7 @@ func New(deps Dependencies) http.Handler {
 		Config:      deps.Config,
 		DB:          deps.DB,
 		EmailSender: mailer.NewSMTP(deps.Config),
+		Payment:     deps.Payment,
 	})
 	handlers := handler.New(service, deps.Logger)
 
@@ -53,10 +56,23 @@ func registerRoutes(engine *gin.Engine, handlers *handler.Handler) {
 	api.GET("/me", handlers.Me)
 	api.GET("/products", handlers.Products)
 	api.GET("/tools", handlers.Tools)
-	api.POST("/orders", handlers.CreateOrder)
 	api.GET("/me/orders", handlers.MyOrders)
 	api.GET("/me/entitlements", handlers.MyEntitlements)
+	api.GET("/me/purchases", handlers.MyPurchases)
+	api.POST("/license-codes/redeem", handlers.RedeemLicenseCode)
+	api.POST("/payments/alipay/precreate", handlers.CreateAlipayPayment)
+	api.GET("/payments/orders/:orderNo/status", handlers.PaymentOrderStatus)
+	api.POST("/payments/alipay/notify", handlers.AlipayNotification)
 	api.POST("/devices/bind", handlers.BindDevice)
+
+	// Game APIs
+	api.POST("/game/init", handlers.GameInit)
+	api.POST("/game/box/open", handlers.GameOpenBox)
+	api.GET("/game/equipments", handlers.GameListEquipments)
+	api.POST("/game/equipments/equip", handlers.GameEquip)
+	api.GET("/game/opponents", handlers.GameGetOpponents)
+	api.POST("/game/challenge", handlers.GameChallenge)
+	api.GET("/game/leaderboard", handlers.GameLeaderboard)
 
 	// Admin APIs
 	api.POST("/admin/auth/login", handlers.AdminLogin)
@@ -68,6 +84,9 @@ func registerRoutes(engine *gin.Engine, handlers *handler.Handler) {
 	api.GET("/admin/tools", handlers.AdminListTools)
 	api.POST("/admin/tools", handlers.AdminCreateTool)
 	api.PUT("/admin/tools/:code", handlers.AdminUpdateTool)
+	api.GET("/admin/license-codes", handlers.AdminListLicenseCodes)
+	api.POST("/admin/license-codes/generate", handlers.AdminGenerateLicenseCodes)
+	api.POST("/admin/license-codes/:id/revoke", handlers.AdminRevokeLicenseCode)
 	api.POST("/admin/entitlements/grant", handlers.AdminGrantEntitlement)
 	api.POST("/admin/orders/confirm", handlers.AdminConfirmOrder)
 }

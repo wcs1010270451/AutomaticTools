@@ -4,6 +4,9 @@ setlocal
 cd /d "%~dp0"
 set "IMAGE=wcs19890321/automatictools-frontend:latest"
 
+call "%~dp0prepare-downloads.bat"
+if errorlevel 1 exit /b 1
+
 docker buildx version >nul 2>&1
 if errorlevel 1 (
     echo ERROR: Docker Buildx is not available.

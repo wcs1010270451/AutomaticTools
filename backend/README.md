@@ -11,8 +11,8 @@ The first tool is `auto_click`, but the backend is structured so more paid tools
 - Administrator, user, and tool management APIs
 - JWT authentication
 - Tool catalog
-- Order creation
-- Permanent tool entitlements after payment confirmation
+- Alipay face-to-face QR payment
+- Idempotent payment callbacks and permanent purchases
 - Device binding
 - Audit logs
 - JSON request logs with request IDs
@@ -34,7 +34,7 @@ Core tables:
 - `admins`: management-console accounts
 - `tools`: paid utility tools, for example `auto_click`
 - `orders`: purchase records
-- `entitlements`: which user owns which tool
+- `entitlements`: internal ownership records exposed to clients as purchases
 - `devices`: user device binding and last-seen tracking
 - `audit_logs`: traceable business events
 
@@ -42,13 +42,11 @@ Recommended client flow:
 
 1. User registers or logs in.
 2. Client calls `GET /api/tools`.
-3. Client creates an order for a tool with `POST /api/orders`.
-4. Payment provider confirms payment.
-5. Backend marks order paid and grants entitlement.
-6. Client calls `GET /api/me/entitlements`.
-7. Client unlocks owned tools such as `auto_click`.
-
-The temporary admin confirm endpoint exists only until a real payment provider is integrated.
+3. Client calls `POST /api/payments/alipay/precreate` and renders the returned QR content.
+4. Alipay sends a signed asynchronous notification after payment.
+5. Backend verifies the signature, app, seller, order number, and amount.
+6. One transaction marks the order paid and records the purchased tool.
+7. Client polls the order and refreshes `GET /api/me/purchases` after success.
 
 ## Start
 
@@ -103,6 +101,14 @@ The backend also executes this idempotent script during startup. See
 - `smtp_from`
 - `smtp_from_name`
 - `smtp_encryption` (`starttls`, `tls`, or `none`)
+- `alipay_enabled`
+- `alipay_app_id`
+- `alipay_private_key_file`
+- `alipay_public_key_file`
+- `alipay_notify_url`
+- `alipay_seller_id` (recommended for notification validation)
+- `alipay_production`
+- `alipay_timeout_seconds`
 - `log_level`
 
 Environment variables override the file when needed. Set `AUTOMATIC_TOOLS_CONFIG_FILE`
@@ -120,8 +126,20 @@ $env:AUTOMATIC_TOOLS_SMTP_USERNAME="noreply@example.com"
 $env:AUTOMATIC_TOOLS_SMTP_PASSWORD="smtp-authorization-code"
 $env:AUTOMATIC_TOOLS_SMTP_FROM="noreply@example.com"
 $env:AUTOMATIC_TOOLS_SMTP_ENCRYPTION="starttls"
+$env:AUTOMATIC_TOOLS_ALIPAY_ENABLED="true"
+$env:AUTOMATIC_TOOLS_ALIPAY_APP_ID="your-app-id"
+$env:AUTOMATIC_TOOLS_ALIPAY_PRIVATE_KEY_FILE="secrets/alipay_app_private_key.pem"
+$env:AUTOMATIC_TOOLS_ALIPAY_PUBLIC_KEY_FILE="secrets/alipay_public_key.pem"
+$env:AUTOMATIC_TOOLS_ALIPAY_NOTIFY_URL="https://autumnwind.top/api/payments/alipay/notify"
+$env:AUTOMATIC_TOOLS_ALIPAY_SELLER_ID="your-seller-id"
+$env:AUTOMATIC_TOOLS_ALIPAY_PRODUCTION="false"
 go run .\cmd\api
 ```
+
+The private-key file contains the application's private key. The public-key file
+must contain the Alipay public key, not the application's public key. Keep
+`alipay_production` disabled while using the Alipay sandbox. If payment is
+explicitly enabled and a key is missing or invalid, the backend refuses to start.
 
 On the first startup, the backend creates the administrator from these bootstrap
 credentials. The defaults are `admin` / `123456`. Existing administrator
@@ -232,20 +250,41 @@ Example response:
 }
 ```
 
-### Create Order
+### Create Alipay QR Payment
 
 ```http
-POST /api/orders
+POST /api/payments/alipay/precreate
 Authorization: Bearer <token>
 Content-Type: application/json
 
 {
-  "toolCode": "auto_click",
-  "payChannel": "manual"
+  "toolCode": "auto_click"
 }
 ```
 
-The order starts as `pending`.
+The response contains the pending order, `qrCode`, and `expiresAt`. Render
+`qrCode` locally as a QR image; do not treat QR creation as payment success.
+
+### Payment Status
+
+```http
+GET /api/payments/orders/ord_xxx/status
+Authorization: Bearer <token>
+```
+
+The client should poll this endpoint while the QR dialog is visible. Only a
+`paid` order and a matching purchase record unlock the tool.
+
+### Alipay Notification
+
+```http
+POST /api/payments/alipay/notify
+Content-Type: application/x-www-form-urlencoded
+```
+
+This endpoint is called by Alipay, not the desktop client. It verifies the RSA2
+signature and business fields before applying an idempotent database transaction.
+It returns plain text `success` only after a valid notification is handled.
 
 ### My Orders
 
@@ -254,14 +293,15 @@ GET /api/me/orders
 Authorization: Bearer <token>
 ```
 
-### My Entitlements
+### My Purchases
 
 ```http
-GET /api/me/entitlements
+GET /api/me/purchases
 Authorization: Bearer <token>
 ```
 
 The client should unlock a tool only when the matching `toolCode` is present.
+`GET /api/me/entitlements` remains available for backward compatibility.
 
 ### Bind Device
 
@@ -404,9 +444,10 @@ Tool codes cannot be changed or deleted because orders and entitlements retain
 their references to the code. Set `active` to `false` to remove a tool from the
 public catalog. Create and update actions are written to `audit_logs`.
 
-### Confirm Order (temporary admin API)
+### Confirm Order (support API)
 
-This simulates payment completion before WeChat/Alipay integration exists.
+This endpoint is retained for customer-service repair and local testing. Normal
+Windows purchases use the Alipay callback instead.
 
 ```http
 POST /api/admin/orders/confirm
@@ -420,7 +461,7 @@ Content-Type: application/json
 
 This marks the order as `paid` and grants a permanent entitlement for the purchased tool.
 
-### Grant Entitlement (temporary admin API)
+### Grant Entitlement (support API)
 
 Manual entitlement grant, useful for testing or customer support.
 
@@ -451,10 +492,8 @@ Do not use `localhost` on Android. On Android, `localhost` means the phone itsel
 
 Before launch, add:
 
-- Real payment orders and callbacks
-- Payment callback signature verification
 - Database backup
 - Rate limiting
 - Structured error monitoring
 - Deployment health checks
-- Refund and customer-service workflows
+- Alipay reconciliation, refunds, and customer-service workflows

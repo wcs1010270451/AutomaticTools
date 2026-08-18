@@ -39,6 +39,12 @@ const router = createRouter({
           component: () => import('../views/ToolListView.vue'),
           meta: { title: '工具' },
         },
+		{
+		  path: 'license-codes',
+		  name: 'license-codes',
+		  component: () => import('../views/LicenseCodeListView.vue'),
+		  meta: { title: '授权码' },
+		},
       ],
     },
   ],

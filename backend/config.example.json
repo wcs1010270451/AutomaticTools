@@ -12,5 +12,13 @@
   "smtp_from": "noreply@example.com",
   "smtp_from_name": "AutomaticTools",
   "smtp_encryption": "starttls",
+  "alipay_enabled": false,
+  "alipay_app_id": "",
+  "alipay_private_key_file": "secrets/alipay_app_private_key.pem",
+  "alipay_public_key_file": "secrets/alipay_public_key.pem",
+  "alipay_notify_url": "https://autumnwind.top/api/payments/alipay/notify",
+  "alipay_seller_id": "",
+  "alipay_production": false,
+  "alipay_timeout_seconds": 15,
   "log_level": "info"
 }

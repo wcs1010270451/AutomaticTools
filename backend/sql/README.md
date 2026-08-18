@@ -36,6 +36,12 @@ To add registration email verification codes manually, run:
 psql -U postgres -d automatic_tools -f .\sql\004_add_email_verification_codes_postgres.sql
 ```
 
+To add Alipay order metadata to an existing database, run:
+
+```powershell
+psql -U postgres -d automatic_tools -f .\sql\005_add_payment_details_postgres.sql
+```
+
 The administrator row itself is initialized by the backend on startup so its
 password is stored as a bcrypt hash rather than plain text.
 

@@ -3,6 +3,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from auth_client import ApiClient, SessionStore, _parse_error_response
 
@@ -20,6 +21,46 @@ class ApiClientTests(unittest.TestCase):
         self.assertEqual(
             _parse_error_response(body), ("验证码错误。", "request-1")
         )
+
+    def test_platform_data_endpoints(self) -> None:
+        client = ApiClient("https://example.com")
+        with patch.object(client, "_request", return_value={}) as api_request:
+            client.list_tools()
+            api_request.assert_called_once_with("GET", "/api/tools")
+
+        with patch.object(client, "_request", return_value={}) as api_request:
+            client.my_purchases("token")
+            api_request.assert_called_once_with(
+                "GET", "/api/me/purchases", token="token"
+            )
+
+        with patch.object(client, "_request", return_value={}) as api_request:
+            client.my_orders("token")
+            api_request.assert_called_once_with("GET", "/api/me/orders", token="token")
+
+        with patch.object(client, "_request", return_value={}) as api_request:
+            client.redeem_license_code("token", "AT-2345-6789-ABCD-EFGH")
+            api_request.assert_called_once_with(
+                "POST",
+                "/api/license-codes/redeem",
+                {"code": "AT-2345-6789-ABCD-EFGH"},
+                token="token",
+            )
+
+        with patch.object(client, "_request", return_value={}) as api_request:
+            client.create_alipay_payment("token", "auto_click")
+            api_request.assert_called_once_with(
+                "POST",
+                "/api/payments/alipay/precreate",
+                {"toolCode": "auto_click"},
+                token="token",
+            )
+
+        with patch.object(client, "_request", return_value={}) as api_request:
+            client.payment_order_status("token", "ord_1")
+            api_request.assert_called_once_with(
+                "GET", "/api/payments/orders/ord_1/status", token="token"
+            )
 
 
 @unittest.skipUnless(os.name == "nt", "Windows DPAPI is required")

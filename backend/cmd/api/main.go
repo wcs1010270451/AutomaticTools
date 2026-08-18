@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"automatictools/backend/internal/config"
+	"automatictools/backend/internal/payment"
 	"automatictools/backend/internal/router"
 	"automatictools/backend/internal/store"
 )
@@ -45,11 +46,17 @@ func main() {
 		logger.Error("initialize default admin failed", "error", err)
 		os.Exit(1)
 	}
+	paymentProvider, err := payment.NewAlipay(cfg)
+	if err != nil {
+		logger.Error("initialize alipay failed", "error", err)
+		os.Exit(1)
+	}
 
 	handler := router.New(router.Dependencies{
-		Config: cfg,
-		DB:     db,
-		Logger: logger,
+		Config:  cfg,
+		DB:      db,
+		Logger:  logger,
+		Payment: paymentProvider,
 	})
 
 	server := &http.Server{
