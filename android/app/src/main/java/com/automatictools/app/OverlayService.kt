@@ -37,7 +37,8 @@ class OverlayService : Service() {
     private lateinit var statusText: TextView
     private lateinit var countText: TextView
     private lateinit var miniCountText: TextView
-    private lateinit var miniStopBtn: TextView
+    private lateinit var miniLockBtn: TextView
+    private lateinit var miniActionBtn: TextView
     private lateinit var intervalText: TextView
     private lateinit var startButton: Button
 
@@ -223,19 +224,35 @@ class OverlayService : Service() {
             LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT),
         )
 
-        miniStopBtn = TextView(this).apply {
-            text = "停止"
+        miniLockBtn = TextView(this).apply {
+            text = "锁定"
             textSize = 13f
             gravity = Gravity.CENTER
             setTextColor(Color.WHITE)
             setPadding(dp(12), dp(4), dp(12), dp(4))
             background = GradientDrawable().apply {
                 cornerRadius = dp(14).toFloat()
-                setColor(red)
+                setColor(blue)
             }
-            setOnClickListener { stopClicking() }
+            setOnClickListener { lockTarget() }
         }
-        miniView.addView(miniStopBtn, LinearLayout.LayoutParams(
+        miniView.addView(miniLockBtn, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
+        ).apply { leftMargin = dp(6) })
+
+        miniActionBtn = TextView(this).apply {
+            text = "开始"
+            textSize = 13f
+            gravity = Gravity.CENTER
+            setTextColor(Color.WHITE)
+            setPadding(dp(12), dp(4), dp(12), dp(4))
+            background = GradientDrawable().apply {
+                cornerRadius = dp(14).toFloat()
+                setColor(Color.rgb(22, 163, 74))
+            }
+            setOnClickListener { toggleClicking() }
+        }
+        miniView.addView(miniActionBtn, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
         ).apply { leftMargin = dp(6) })
 
@@ -316,10 +333,11 @@ class OverlayService : Service() {
 
     private fun toggleClicking() {
         if (running) {
-            stopClicking()
+            stopClicking(expand = false)
         } else {
             startClicking()
         }
+        updateMiniActionBtn()
     }
 
     private fun startClicking() {
@@ -327,10 +345,12 @@ class OverlayService : Service() {
         val y = lockedY
         if (x == null || y == null) {
             Toast.makeText(this, "请先拖动准星并点击“锁定”。", Toast.LENGTH_SHORT).show()
+            expandPanel()
             return
         }
         if (!ClickAccessibilityService.isRunning) {
             Toast.makeText(this, "请先开启 AutomaticTools 无障碍服务。", Toast.LENGTH_LONG).show()
+            expandPanel()
             return
         }
 
@@ -339,19 +359,34 @@ class OverlayService : Service() {
         collapsePanel()
         startButton.text = "停止"
         statusText.text = "状态：点击中"
+        updateMiniActionBtn()
         scheduleClick()
     }
 
-    private fun stopClicking() {
+    private fun stopClicking(expand: Boolean = true) {
         running = false
         handler.removeCallbacksAndMessages(null)
         attachTargetView()
-        expandPanel()
+        if (expand) {
+            expandPanel()
+        }
         if (::startButton.isInitialized) {
             startButton.text = "开始"
         }
         if (::statusText.isInitialized) {
             statusText.text = if (lockedX != null) "状态：已锁定" else "状态：停止"
+        }
+        updateMiniActionBtn()
+    }
+
+    private fun updateMiniActionBtn() {
+        if (!::miniActionBtn.isInitialized) return
+        miniActionBtn.text = if (running) "暂停" else "开始"
+        (miniActionBtn.background as? GradientDrawable)?.setColor(
+            if (running) red else Color.rgb(22, 163, 74)
+        )
+        if (::miniLockBtn.isInitialized) {
+            miniLockBtn.visibility = if (running) View.GONE else View.VISIBLE
         }
     }
 
@@ -379,6 +414,7 @@ class OverlayService : Service() {
             startButton.text = "开始"
             statusText.text = "状态：需要无障碍服务"
             attachTargetView()
+            updateMiniActionBtn()
             expandPanel()
         }
     }
@@ -432,7 +468,7 @@ class OverlayService : Service() {
         if (!::miniView.isInitialized) {
             createMiniPanel()
         }
-        miniStopBtn.visibility = if (running) View.VISIBLE else View.GONE
+        updateMiniActionBtn()
         if (panelAttached) {
             miniParams.x = panelParams.x
             miniParams.y = panelParams.y
