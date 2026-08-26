@@ -1,6 +1,7 @@
 package com.automatictools.app
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Handler
 import android.os.Looper
@@ -70,6 +71,41 @@ object UserManager {
             remove(KEY_EMAIL)
             apply()
         }
+        context.stopService(Intent(context, OverlayService::class.java))
+    }
+
+    fun verifyEntitlement(
+        context: Context,
+        toolCode: String,
+        callback: (Boolean, String) -> Unit,
+    ) {
+        val token = getToken(context) ?: run {
+            callback(false, "请先登录后再启动工具")
+            return
+        }
+
+        Thread {
+            try {
+                val result = ApiClient.myEntitlements(token)
+                val entitlements = result.optJSONArray("entitlements")
+                val authorized = entitlements?.let { items ->
+                    (0 until items.length()).any { index ->
+                        items.optJSONObject(index)?.optString("toolCode") == toolCode
+                    }
+                } == true
+                val message = if (authorized) "授权验证成功" else "尚未兑换此工具，请先兑换授权码"
+                mainHandler.post { callback(authorized, message) }
+            } catch (e: ApiError) {
+                mainHandler.post {
+                    if (e.status == 401) {
+                        logout(context)
+                    }
+                    callback(false, e.message ?: "授权验证失败")
+                }
+            } catch (_: Exception) {
+                mainHandler.post { callback(false, "无法连接服务器，暂时不能启动工具") }
+            }
+        }.start()
     }
 
     // --- Async API operations (run on background thread, callback on main) ---
@@ -135,7 +171,7 @@ object UserManager {
         Thread {
             try {
                 val result = ApiClient.me(token)
-                updateUserInfo(context, result)
+                updateUserInfo(context, result.optJSONObject("user") ?: result)
                 mainHandler.post { callback(true, "同步成功") }
             } catch (e: ApiError) {
                 mainHandler.post { callback(false, e.message ?: "同步失败") }

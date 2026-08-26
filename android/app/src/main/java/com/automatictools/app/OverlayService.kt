@@ -8,6 +8,7 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.provider.Settings
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -51,17 +52,43 @@ class OverlayService : Service() {
     private var miniAttached = false
     private var intervalMs = 1000L
     private var clickCount = 0
+    private var authorizationInProgress = false
 
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
-        createTarget()
-        createPanel()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        expandPanel()
-        return START_STICKY
+        if (panelAttached || miniAttached) {
+            expandPanel()
+            return START_NOT_STICKY
+        }
+        if (authorizationInProgress) {
+            return START_NOT_STICKY
+        }
+
+        authorizationInProgress = true
+        UserManager.verifyEntitlement(this, TOOL_CODE) { authorized, message ->
+            authorizationInProgress = false
+            if (!authorized) {
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+                stopSelf(startId)
+                return@verifyEntitlement
+            }
+            if (!Settings.canDrawOverlays(this)) {
+                Toast.makeText(this, "请先开启悬浮窗权限", Toast.LENGTH_SHORT).show()
+                stopSelf(startId)
+                return@verifyEntitlement
+            }
+            if (!::targetView.isInitialized) {
+                createTarget()
+                createPanel()
+            } else {
+                expandPanel()
+            }
+        }
+        return START_NOT_STICKY
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -579,4 +606,8 @@ class OverlayService : Service() {
 
     private fun dp(value: Int): Int =
         (value * resources.displayMetrics.density).toInt()
+
+    companion object {
+        private const val TOOL_CODE = "auto_click"
+    }
 }
