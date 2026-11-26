@@ -1,5 +1,6 @@
 package com.automatictools.app
 
+import android.app.AlertDialog
 import android.app.Service
 import android.content.Intent
 import android.graphics.Color
@@ -9,11 +10,13 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.provider.Settings
+import android.text.InputType
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -53,6 +56,7 @@ class OverlayService : Service() {
     private var intervalMs = 1000L
     private var clickCount = 0
     private var authorizationInProgress = false
+    private var intervalDialog: AlertDialog? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -94,6 +98,7 @@ class OverlayService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
+        intervalDialog?.dismiss()
         stopClicking()
         if (::targetView.isInitialized && targetAttached) {
             windowManager.removeView(targetView)
@@ -196,12 +201,10 @@ class OverlayService : Service() {
         coordinateText = label("目标：-, -")
         statusText = label("状态：停止")
         countText = label("点击次数：0")
-        intervalText = label("间隔：1000ms")
         content.addView(coordinateText, matchWrap())
         content.addView(statusText, matchWrap())
         content.addView(countText, matchWrap())
-        content.addView(intervalText, matchWrap())
-
+        content.addView(intervalHeader(), matchWrap())
         content.addView(intervalRow(), matchWrap(top = 8))
         content.addView(actionRow(), matchWrap(top = 8))
 
@@ -309,10 +312,22 @@ class OverlayService : Service() {
         })
     }
 
+    private fun intervalHeader(): LinearLayout {
+        intervalText = label("间隔：${formatInterval(intervalMs)}")
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            addView(intervalText, LinearLayout.LayoutParams(0, WindowManager.LayoutParams.WRAP_CONTENT, 1f))
+            addView(panelButton("自定义", Color.rgb(226, 232, 240), darkText = true).apply {
+                setOnClickListener { showIntervalDialog() }
+            }, LinearLayout.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, dp(48)))
+        }
+    }
+
     private fun intervalRow(): LinearLayout {
         return LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            addView(intervalButton("100", 100), rowButtonParams(0, 4))
+            addView(intervalButton("100", MIN_INTERVAL_MS.toLong()), rowButtonParams(0, 4))
             addView(intervalButton("500", 500), rowButtonParams(4, 4))
             addView(intervalButton("1000", 1000), rowButtonParams(4, 4))
             addView(intervalButton("2秒", 2000), rowButtonParams(4, 0))
@@ -343,11 +358,60 @@ class OverlayService : Service() {
     private fun intervalButton(label: String, value: Long): Button {
         return panelButton(label, Color.rgb(226, 232, 240), darkText = true).apply {
             minWidth = 0
-            setOnClickListener {
-                intervalMs = value
-                intervalText.text = "间隔：${formatInterval(value)}"
+            setOnClickListener { setInterval(value) }
+        }
+    }
+
+    private fun showIntervalDialog() {
+        if (intervalDialog != null) return
+        if (running) {
+            Toast.makeText(this, "请先暂停点击，再设置自定义间隔。", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val builder = AlertDialog.Builder(this)
+        val input = EditText(builder.context).apply {
+            hint = "点击间隔（毫秒）"
+            inputType = InputType.TYPE_CLASS_NUMBER
+            setSingleLine()
+            setText(intervalMs.toString())
+            setSelectAllOnFocus(true)
+        }
+        val content = LinearLayout(builder.context).apply {
+            setPadding(dp(24), dp(8), dp(24), 0)
+            addView(input, matchWrap())
+        }
+        val dialog = builder
+            .setTitle("自定义点击间隔")
+            .setMessage("请输入至少 $MIN_INTERVAL_MS 毫秒的整数。")
+            .setView(content)
+            .setNegativeButton("取消", null)
+            .setPositiveButton("确定", null)
+            .create()
+        dialog.window?.apply {
+            setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY)
+            setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+        }
+        dialog.setOnDismissListener { intervalDialog = null }
+        dialog.setOnShowListener {
+            input.requestFocus()
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val value = input.text.toString().trim().toIntOrNull()
+                if (value == null || value < MIN_INTERVAL_MS) {
+                    input.error = "请输入有效的整数，至少 $MIN_INTERVAL_MS 毫秒。"
+                    return@setOnClickListener
+                }
+                setInterval(value.toLong())
+                dialog.dismiss()
             }
         }
+        intervalDialog = dialog
+        dialog.show()
+    }
+
+    private fun setInterval(value: Long) {
+        intervalMs = value
+        intervalText.text = "间隔：${formatInterval(value)}"
     }
 
     private fun lockTarget() {
@@ -609,5 +673,6 @@ class OverlayService : Service() {
 
     companion object {
         private const val TOOL_CODE = "auto_click"
+        private const val MIN_INTERVAL_MS = 100
     }
 }

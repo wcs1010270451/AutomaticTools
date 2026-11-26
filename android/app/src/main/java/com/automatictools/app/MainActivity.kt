@@ -502,7 +502,7 @@ class MainActivity : Activity() {
         listOf(
             "1. 开启悬浮窗权限和 AutomaticTools 无障碍服务。",
             "2. 启动悬浮控制，将准星拖到需要点击的位置。",
-            "3. 点击“锁定”，选择点击间隔后点击“开始”。",
+            "3. 点击“锁定”，选择或自定义点击间隔，再点击“开始”。",
             "4. 运行时可在迷你面板暂停、继续或展开设置。",
         ).forEachIndexed { index, text ->
             guide.addView(TextView(this).apply {
